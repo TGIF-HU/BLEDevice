@@ -22,7 +22,7 @@ pub struct WifiConfig {
 }
 
 pub const WIFI_CONFIG: WifiConfig = WifiConfig {
-    ssid: "elecom-a19d07",
-    password: "c2prrkjhc8nk",
+    ssid: "ssid",
+    password: "password",
 };
 ```
