@@ -1,7 +1,7 @@
 use crate::queue::FixedQueue;
 use chrono::{DateTime, Utc};
 use esp32_nimble::BLEDevice;
-use esp_idf_hal::{delay::FreeRtos, task::block_on};
+use esp_idf_hal::task::block_on;
 use log::*;
 use serde::Serialize;
 use serde_json::json;
@@ -80,6 +80,5 @@ pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BleInfoJson>>) {
         ble_scan.start(10000).await.unwrap();
 
         info!("Scan end");
-        FreeRtos::delay_ms(100); // スキャンのインターバル
     });
 }
