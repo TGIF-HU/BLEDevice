@@ -25,4 +25,6 @@ pub const WIFI_CONFIG: WifiConfig = WifiConfig {
     ssid: "ssid",
     password: "password",
 };
+
+pub const DEVICE_ID: usize = 1;
 ```
