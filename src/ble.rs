@@ -20,27 +20,27 @@ struct BleDeviceInfo {
 
 #[derive(Debug)]
 pub struct BleInfoJson {
-    id: usize,
-    bleinfo: FixedQueue<BleDeviceInfo>,
+    device_id: usize,
+    ble: FixedQueue<BleDeviceInfo>,
 }
 
 impl BleInfoJson {
-    pub fn new(id: usize, max_len: usize) -> Self {
+    pub fn new(device_id: usize, max_len: usize) -> Self {
         BleInfoJson {
-            id,
-            bleinfo: FixedQueue::new(max_len),
+            device_id,
+            ble: FixedQueue::new(max_len),
         }
     }
 
     fn push(&mut self, item: BleDeviceInfo) {
-        self.bleinfo.push(item);
+        self.ble.push(item);
     }
 
     pub fn get_json(&self) -> String {
         json!(
             {
-                "id": self.id,
-                "bleinfo": self.bleinfo.get_queue()
+                "device_id": self.device_id,
+                "ble": self.ble.get_queue()
             }
         )
         .to_string()
