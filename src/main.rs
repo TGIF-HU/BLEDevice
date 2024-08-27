@@ -65,7 +65,7 @@ fn main() -> Result<()> {
     info!("Time Sync Completed");
 
     // HTTP Server用のBLEデバイス情報を格納する共有メモリ
-    let ble_info = Arc::new(Mutex::new(BleInfoJson::new(DEVICE_ID, 500)));
+    let ble_info = Arc::new(Mutex::new(BleInfoJson::new(DEVICE_ID, 50)));
     let ble_info_http = ble_info.clone();
     // BLEスキャン用の共有メモリ
     let ble_info_scan = ble_info.clone();
