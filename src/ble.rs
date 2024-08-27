@@ -15,6 +15,7 @@ struct BleDeviceInfo {
     address: String,
     rssi: i32,
     manufacture_id: Option<Vec<u8>>,
+    name: String,
     time: DateTime<Utc>,
 }
 
@@ -61,6 +62,7 @@ pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BleInfoJson>>) {
                 let address = param.addr().to_string();
                 let rssi = param.rssi();
                 let manufacture_id = param.get_manufacture_data().map(|data| data.to_vec());
+                let name = param.name().to_owned().to_string();
                 let time: DateTime<Utc> = SystemTime::now().into();
 
                 // ログにデバイス情報を出力
@@ -75,6 +77,7 @@ pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BleInfoJson>>) {
                     address,
                     rssi,
                     manufacture_id,
+                    name,
                     time,
                 });
                 // info!("BLE Device Info: {:?}", ble_info_lock);
