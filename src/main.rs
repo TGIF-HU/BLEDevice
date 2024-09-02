@@ -61,8 +61,6 @@ fn main() -> Result<()> {
     // NTPの初期化 (時刻同期)
     let ntp = EspSntp::new_default()?;
     info!("Synchronizing with NTP Server");
-    while ntp.get_sync_status() != SyncStatus::Completed {}
-    info!("Time Sync Completed");
 
     // HTTP Server用のBLEデバイス情報を格納する共有メモリ
     let ble_info = Arc::new(Mutex::new(BleInfoJson::new(DEVICE_ID, 50)));
@@ -88,8 +86,12 @@ fn main() -> Result<()> {
         scan_and_update_ble_info(ble_info_scan.clone());
     });
 
-    // HTTP Serverでのリクエストを待ち受ける
+    // Serverのリクエストの受信 ∧ 時間の較正
     loop {
-        FreeRtos::delay_ms(1000);
+        // NTPの時刻同期
+        while ntp.get_sync_status() != SyncStatus::Completed {}
+        info!("Time Sync Completed");
+
+        FreeRtos::delay_ms(u32::MAX / 100); // 2^32 ms / 100 ~= 49.7 days / 100 ~= 0.5 day
     }
 }
