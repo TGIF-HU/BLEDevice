@@ -28,3 +28,17 @@ pub const WIFI_CONFIG: WifiConfig = WifiConfig {
 
 pub const DEVICE_ID: usize = 1;
 ```
+
+# 実行方法
+
+マイコンをjsonサーバーとして用いたい場合、
+
+```bash
+cargo run --bin ble_server
+```
+
+マイコンからあるサーバーにBLEデータを送信したい場合、
+
+```bash
+cargo run --bin esp2server
+```
