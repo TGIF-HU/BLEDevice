@@ -15,7 +15,6 @@ use esp_idf_svc::{
     wifi::{BlockingWifi, EspWifi},
 };
 use heapless::String as heapString;
-// use http::time2json;
 use log::*;
 use std::sync::{Arc, Mutex};
 

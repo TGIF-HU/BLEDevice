@@ -21,6 +21,38 @@ struct BleInfo {
     time: DateTime<Utc>,
 }
 
+impl BleInfo {
+    pub fn new(
+        address: String,
+        rssi: i32,
+        manufacture_id: Option<Vec<u8>>,
+        name: String,
+        time: DateTime<Utc>,
+    ) -> Self {
+        BleInfo {
+            address,
+            rssi,
+            manufacture_id,
+            name,
+            time,
+        }
+    }
+
+    pub fn get_json(&self) -> String {
+        json!(
+            {
+                "device_id": DEVICE_ID,
+                "address": self.address,
+                "rssi": self.rssi,
+                "manufacture_id": self.manufacture_id,
+                "name": self.name,
+                "time": self.time
+            }
+        )
+        .to_string()
+    }
+}
+
 #[derive(Debug)]
 pub struct BleInfoQueue {
     ble: FixedQueue<BleInfo>,
@@ -73,13 +105,7 @@ pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BleInfoQueue>>) {
                 let mut ble_info_lock = ble_info.lock().unwrap();
 
                 // クロージャ内でデバイス情報を追加
-                ble_info_lock.push(BleInfo {
-                    address,
-                    rssi,
-                    manufacture_id,
-                    name,
-                    time,
-                });
+                ble_info_lock.push(BleInfo::new(address, rssi, manufacture_id, name, time));
                 // info!("BLE Device Info: {:?}", ble_info_lock);
             });
 
