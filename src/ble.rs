@@ -1,4 +1,6 @@
 use crate::queue::FixedQueue;
+use crate::DEVICE_ID;
+
 use chrono::{DateTime, Utc};
 use esp32_nimble::BLEDevice;
 use esp_idf_hal::task::block_on;
@@ -11,7 +13,7 @@ use std::{
 };
 
 #[derive(Clone, Debug, Serialize)]
-struct BleDeviceInfo {
+struct BleInfo {
     address: String,
     rssi: i32,
     manufacture_id: Option<Vec<u8>>,
@@ -20,27 +22,25 @@ struct BleDeviceInfo {
 }
 
 #[derive(Debug)]
-pub struct BleInfoJson {
-    device_id: usize,
-    ble: FixedQueue<BleDeviceInfo>,
+pub struct BleInfoQueue {
+    ble: FixedQueue<BleInfo>,
 }
 
-impl BleInfoJson {
-    pub fn new(device_id: usize, max_len: usize) -> Self {
-        BleInfoJson {
-            device_id,
+impl BleInfoQueue {
+    pub fn new(max_len: usize) -> Self {
+        BleInfoQueue {
             ble: FixedQueue::new(max_len),
         }
     }
 
-    fn push(&mut self, item: BleDeviceInfo) {
+    fn push(&mut self, item: BleInfo) {
         self.ble.push(item);
     }
 
     pub fn get_json(&self) -> String {
         json!(
             {
-                "device_id": self.device_id,
+                "device_id": DEVICE_ID,
                 "ble": self.ble.get_queue()
             }
         )
@@ -49,7 +49,7 @@ impl BleInfoJson {
 }
 
 /// BLEデバイスのスキャンとデータの更新を行う関数
-pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BleInfoJson>>) {
+pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BleInfoQueue>>) {
     block_on(async {
         let ble_device = BLEDevice::take();
         let ble_scan = ble_device.get_scan();
@@ -73,7 +73,7 @@ pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BleInfoJson>>) {
                 let mut ble_info_lock = ble_info.lock().unwrap();
 
                 // クロージャ内でデバイス情報を追加
-                ble_info_lock.push(BleDeviceInfo {
+                ble_info_lock.push(BleInfo {
                     address,
                     rssi,
                     manufacture_id,

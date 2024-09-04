@@ -3,7 +3,7 @@ mod config;
 mod queue;
 
 use anyhow::Result;
-use ble::{scan_and_update_ble_info, BleInfoJson};
+use ble::{scan_and_update_ble_info, BleInfoQueue};
 use config::{DEVICE_ID, WIFI_CONFIG};
 use embedded_svc::wifi::{AuthMethod, ClientConfiguration, Configuration as WifiConfig};
 use esp_idf_hal::{delay::FreeRtos, io::Write, peripherals::Peripherals};
@@ -63,7 +63,7 @@ fn main() -> Result<()> {
     info!("Synchronizing with NTP Server");
 
     // HTTP Server用のBLEデバイス情報を格納する共有メモリ
-    let ble_info = Arc::new(Mutex::new(BleInfoJson::new(DEVICE_ID, 50)));
+    let ble_info = Arc::new(Mutex::new(BleInfoQueue::new(50)));
     let ble_info_http = ble_info.clone();
     // BLEスキャン用の共有メモリ
     let ble_info_scan = ble_info.clone();
