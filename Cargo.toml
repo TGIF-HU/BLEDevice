@@ -7,12 +7,15 @@ resolver = "2"
 rust-version = "1.77"
 
 [[bin]]
-name = "ble_server"
-path = "src/ble_server.rs"
+name = "ble_api"
+path = "src/ble_api.rs"
+harness = false # do not use the built in cargo test harness -> resolve rust-analyzer errors
+
 
 [[bin]]
-name = "esp2server"
-path = "src/esp2server.rs"
+name = "ble_post"
+path = "src/ble_post.rs"
+harness = false # do not use the built in cargo test harness -> resolve rust-analyzer errors
 
 [profile.release]
 opt-level = "s"

@@ -6,13 +6,10 @@ use anyhow::Result;
 use ble::{scan_and_update_ble_info, BleInfoJson};
 use config::{DEVICE_ID, WIFI_CONFIG};
 use embedded_svc::wifi::{AuthMethod, ClientConfiguration, Configuration as WifiConfig};
-use esp_idf_hal::{delay::FreeRtos, io::Write, peripherals::Peripherals};
+use esp_idf_hal::{delay::FreeRtos, peripherals::Peripherals};
 use esp_idf_svc::{
     eventloop::EspSystemEventLoop,
-    http::{
-        server::{Configuration as HTTPConfig, EspHttpServer},
-        Method,
-    },
+    http::server::{Configuration as HTTPConfig, EspHttpServer},
     nvs::EspDefaultNvsPartition,
     sntp::{EspSntp, SyncStatus},
     wifi::{BlockingWifi, EspWifi},
