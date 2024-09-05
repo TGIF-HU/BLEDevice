@@ -145,7 +145,6 @@ pub fn scan_and_post_ble_info() {
                 let header = [("Content-Type", "application/json")];
                 let mut request = httpclient.post(URL, &header).unwrap();
 
-                // let response_body = ble_info.get_json();
                 let response_body = ble_info.get_json();
                 request.write(response_body.as_bytes()).unwrap();
                 request.submit().unwrap();
