@@ -3,20 +3,18 @@ mod config;
 mod queue;
 
 use anyhow::Result;
-use ble::{scan_and_update_ble_info, BleInfoQueue};
-use config::{DEVICE_ID, WIFI_CONFIG};
+use ble::scan_and_post_ble_info;
+use config::WIFI_CONFIG;
 use embedded_svc::wifi::{AuthMethod, ClientConfiguration, Configuration as WifiConfig};
 use esp_idf_hal::{delay::FreeRtos, peripherals::Peripherals};
 use esp_idf_svc::{
     eventloop::EspSystemEventLoop,
-    http::server::{Configuration as HTTPConfig, EspHttpServer},
     nvs::EspDefaultNvsPartition,
     sntp::{EspSntp, SyncStatus},
     wifi::{BlockingWifi, EspWifi},
 };
 use heapless::String as heapString;
 use log::*;
-use std::sync::{Arc, Mutex};
 
 fn main() -> Result<()> {
     esp_idf_svc::sys::link_patches();
@@ -58,21 +56,9 @@ fn main() -> Result<()> {
     let ntp = EspSntp::new_default()?;
     info!("Synchronizing with NTP Server");
 
-    // HTTP Server用のBLEデバイス情報を格納する共有メモリ
-    let ble_info = Arc::new(Mutex::new(BleInfoQueue::new(50)));
-    let ble_info_http = ble_info.clone();
-    // BLEスキャン用の共有メモリ
-    let ble_info_scan = ble_info.clone();
-
-    // HTTP Serverの初期化
-    let mut httpserver = EspHttpServer::new(&HTTPConfig::default())?;
-
-    // サーバーへの送信
-    todo!("Serverへの送信");
-
+    // BLEデバイスのスキャンと更新を行う
     std::thread::spawn(move || loop {
-        // BLEデバイスのスキャンと更新を行う
-        scan_and_update_ble_info(ble_info_scan.clone());
+        scan_and_post_ble_info();
     });
 
     // Serverのリクエストの受信 ∧ 時間の較正

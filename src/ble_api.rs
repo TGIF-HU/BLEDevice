@@ -4,7 +4,7 @@ mod queue;
 
 use anyhow::Result;
 use ble::{scan_and_update_ble_info, BleInfoQueue};
-use config::{DEVICE_ID, WIFI_CONFIG};
+use config::WIFI_CONFIG;
 use embedded_svc::wifi::{AuthMethod, ClientConfiguration, Configuration as WifiConfig};
 use esp_idf_hal::{delay::FreeRtos, io::Write, peripherals::Peripherals};
 use esp_idf_svc::{

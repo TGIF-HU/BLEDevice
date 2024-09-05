@@ -27,6 +27,8 @@ pub const WIFI_CONFIG: WifiConfig = WifiConfig {
 };
 
 pub const DEVICE_ID: usize = 1;
+
+pub const URL: &str = "http://127.0.0.1:5000";
 ```
 
 # 実行方法
@@ -34,11 +36,11 @@ pub const DEVICE_ID: usize = 1;
 マイコンをjsonサーバーとして用いたい場合、
 
 ```bash
-cargo run --bin ble_server
+cargo run --bin ble_api
 ```
 
 マイコンからあるサーバーにBLEデータを送信したい場合、
 
 ```bash
-cargo run --bin esp2server
+cargo run --bin ble_post
 ```
