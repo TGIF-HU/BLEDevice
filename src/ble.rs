@@ -43,6 +43,7 @@ impl BleInfo {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get_json(&self) -> String {
         json!(
             {
@@ -96,6 +97,7 @@ fn get_bleinfo(param: &BLEAdvertisedDevice) -> BleInfo {
 }
 
 /// BLEデバイスのスキャンとデータの更新を行う関数
+#[allow(dead_code)]
 pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BleInfoQueue>>) {
     block_on(async {
         let ble_device = BLEDevice::take();
@@ -119,6 +121,7 @@ pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BleInfoQueue>>) {
 }
 
 /// BLEデバイスのスキャンとデータをサーバーに送信する関数
+#[allow(dead_code)]
 pub fn scan_and_post_ble_info() {
     // ToDo: エラー処理
     block_on(async {
