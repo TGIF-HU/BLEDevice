@@ -10,7 +10,7 @@ use esp_idf_hal::task::block_on;
 use esp_idf_svc::http::client::Configuration as HTTPConfig;
 use esp_idf_svc::http::client::EspHttpConnection;
 use log::*;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use serde_json::json;
 use std::{
     sync::{Arc, Mutex},
