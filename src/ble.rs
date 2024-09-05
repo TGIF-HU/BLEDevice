@@ -118,13 +118,9 @@ pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BleInfoQueue>>) {
     });
 }
 
-#[derive(Serialize)]
-struct Json {
-    content: String,
-}
-
 /// BLEデバイスのスキャンとデータをサーバーに送信する関数
 pub fn scan_and_post_ble_info() {
+    // ToDo: エラー処理
     block_on(async {
         let ble_device = BLEDevice::take();
         let ble_scan = ble_device.get_scan();
@@ -138,8 +134,8 @@ pub fn scan_and_post_ble_info() {
 
                 // HTTPクライアントの初期化
                 let httpconnection = EspHttpConnection::new(&HTTPConfig {
-                    use_global_ca_store: true,
-                    crt_bundle_attach: Some(esp_idf_sys::esp_crt_bundle_attach),
+                    use_global_ca_store: false, // httpsの場合はtrue
+                    // crt_bundle_attach: Some(esp_idf_sys::esp_crt_bundle_attach), // httpsの場合は必須
                     ..Default::default()
                 })
                 .unwrap();
@@ -150,10 +146,7 @@ pub fn scan_and_post_ble_info() {
                 let mut request = httpclient.post(URL, &header).unwrap();
 
                 // let response_body = ble_info.get_json();
-                let json_data = Json {
-                    content: ble_info.get_json(),
-                };
-                let response_body = serde_json::to_string(&json_data).unwrap();
+                let response_body = ble_info.get_json();
                 request.write(response_body.as_bytes()).unwrap();
                 request.submit().unwrap();
             });

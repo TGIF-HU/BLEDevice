@@ -28,7 +28,7 @@ pub const WIFI_CONFIG: WifiConfig = WifiConfig {
 
 pub const DEVICE_ID: usize = 1;
 
-pub const URL: &str = "http://127.0.0.1:5000";
+pub const URL: &str = "http://192.209.177.40:5000";
 ```
 
 # 実行方法
