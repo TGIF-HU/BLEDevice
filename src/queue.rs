@@ -10,7 +10,6 @@ pub struct FixedQueue<T> {
 }
 
 impl<T> FixedQueue<T> {
-    // コンストラクタ
     pub fn new(max_len: usize) -> Self {
         FixedQueue {
             queue: VecDeque::with_capacity(max_len),
