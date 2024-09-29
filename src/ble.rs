@@ -6,7 +6,7 @@ use crate::{
 use chrono::{DateTime, Utc};
 use embedded_svc::http::client::Client;
 use esp32_nimble::{BLEAdvertisedDevice, BLEDevice};
-use esp_idf_hal::task::block_on;
+use esp_idf_hal::{delay::FreeRtos, task::block_on};
 use esp_idf_svc::http::client::Configuration as HTTPConfig;
 use esp_idf_svc::http::client::EspHttpConnection;
 use log::*;
@@ -146,7 +146,15 @@ pub fn scan_and_post_ble_info() {
                 let mut httpclient = Client::wrap(httpconnection);
 
                 let header = [("Content-Type", "application/json")];
-                let mut request = httpclient.post(URL, &header).unwrap();
+                let mut request = match httpclient.post(URL, &header) {
+                    Ok(request) => request,
+                    Err(e) => {
+                        warn!("サーバーが見つかりませんでした");
+                        warn!("Error: {:?}", e);
+                        FreeRtos::delay_ms(3000);
+                        return;
+                    }
+                };
 
                 let response_body = ble_info.get_json();
                 request.write(response_body.as_bytes()).unwrap();
