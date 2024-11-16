@@ -18,7 +18,7 @@ use std::{
 };
 
 #[derive(Clone, Debug, Serialize)]
-struct BleInfo {
+struct BLEInfo {
     address: String,
     rssi: i32,
     manufacture_id: Option<Vec<u8>>,
@@ -26,7 +26,7 @@ struct BleInfo {
     time: DateTime<Utc>,
 }
 
-impl BleInfo {
+impl BLEInfo {
     pub fn new(
         address: String,
         rssi: i32,
@@ -34,7 +34,7 @@ impl BleInfo {
         name: String,
         time: DateTime<Utc>,
     ) -> Self {
-        BleInfo {
+        Self {
             address,
             rssi,
             manufacture_id,
@@ -60,18 +60,18 @@ impl BleInfo {
 }
 
 #[derive(Debug)]
-pub struct BleInfoQueue {
-    ble: FixedQueue<BleInfo>,
+pub struct BLEInfoQueue {
+    ble: FixedQueue<BLEInfo>,
 }
 
-impl BleInfoQueue {
+impl BLEInfoQueue {
     pub fn new(max_len: usize) -> Self {
-        BleInfoQueue {
+        BLEInfoQueue {
             ble: FixedQueue::new(max_len),
         }
     }
 
-    fn push(&mut self, item: BleInfo) {
+    fn push(&mut self, item: BLEInfo) {
         self.ble.push(item);
     }
 
@@ -86,19 +86,19 @@ impl BleInfoQueue {
     }
 }
 
-fn get_bleinfo(param: &BLEAdvertisedDevice) -> BleInfo {
+fn get_bleinfo(param: &BLEAdvertisedDevice) -> BLEInfo {
     let address = param.addr().to_string();
     let rssi = param.rssi();
     let manufacture_id = param.get_manufacture_data().map(|data| data.to_vec());
     let name = param.name().to_owned().to_string();
     let time: DateTime<Utc> = SystemTime::now().into();
 
-    BleInfo::new(address, rssi, manufacture_id, name, time)
+    BLEInfo::new(address, rssi, manufacture_id, name, time)
 }
 
 /// BLEデバイスのスキャンとデータの更新を行う関数
 #[allow(dead_code)]
-pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BleInfoQueue>>) {
+pub fn scan_and_update_ble_info(ble_info: Arc<Mutex<BLEInfoQueue>>) {
     block_on(async {
         let ble_device = BLEDevice::take();
         let ble_scan = ble_device.get_scan();
