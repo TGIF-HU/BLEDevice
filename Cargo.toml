@@ -11,11 +11,16 @@ name = "ble_api"
 path = "src/ble_api.rs"
 harness = false # do not use the built in cargo test harness -> resolve rust-analyzer errors
 
-
 [[bin]]
 name = "ble_post"
 path = "src/ble_post.rs"
-harness = false # do not use the built in cargo test harness -> resolve rust-analyzer errors
+harness = false
+
+[[bin]]
+name = "ble_calibration"
+path = "src/ble_calibration.rs"
+harness = false
+
 
 [profile.release]
 opt-level = "s"

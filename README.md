@@ -28,7 +28,7 @@ pub const WIFI_CONFIG: WifiConfig = WifiConfig {
 
 pub const DEVICE_ID: usize = 1;
 
-pub const URL: &str = "http://192.209.177.40:5000";
+pub const URL: &str = "http://192.168.2.103:5050/api/device";
 ```
 
 # 実行方法
@@ -43,4 +43,10 @@ cargo run --bin ble_api
 
 ```bash
 cargo run --bin ble_post
+```
+
+データを測定したい場合、
+
+```bash
+cargo run --bin ble_calibration
 ```
