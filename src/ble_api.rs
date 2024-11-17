@@ -1,11 +1,11 @@
 mod ble;
 mod config;
 mod queue;
+mod wifi;
 
 use anyhow::Result;
 use ble::{scan_and_update_ble_info, BLEInfoQueue};
-use config::WIFI_CONFIG;
-use embedded_svc::wifi::{AuthMethod, ClientConfiguration, Configuration as WifiConfig};
+use config::{PASSWORD, SSID};
 use esp_idf_hal::{delay::FreeRtos, io::Write, peripherals::Peripherals};
 use esp_idf_svc::{
     eventloop::EspSystemEventLoop,
@@ -15,9 +15,7 @@ use esp_idf_svc::{
     },
     nvs::EspDefaultNvsPartition,
     sntp::{EspSntp, SyncStatus},
-    wifi::{BlockingWifi, EspWifi},
 };
-use heapless::String as heapString;
 use log::*;
 use std::sync::{Arc, Mutex};
 
@@ -26,36 +24,14 @@ fn main() -> Result<()> {
     esp_idf_svc::log::EspLogger::initialize_default();
     log::set_max_level(log::LevelFilter::Info);
 
-    // Wi-Fiの初期化
+    // Peripheralsの初期化
     let peripherals = Peripherals::take()?;
     let sysloop = EspSystemEventLoop::take()?;
     let nvs = EspDefaultNvsPartition::take()?;
-    let mut wifi = BlockingWifi::wrap(
-        EspWifi::new(peripherals.modem, sysloop.clone(), Some(nvs))?,
-        sysloop,
-    )?;
 
-    // Wi-Fiの設定
-    let ssid: heapString<32> = heapString::try_from(WIFI_CONFIG.ssid).expect("SSID Error");
-    let password: heapString<64> =
-        heapString::try_from(WIFI_CONFIG.password).expect("Password Error");
-
-    wifi.set_configuration(&WifiConfig::Client(ClientConfiguration {
-        ssid: ssid,
-        password: password,
-        auth_method: AuthMethod::None,
-        ..Default::default()
-    }))?;
-
-    wifi.start()?;
-    wifi.connect()?;
-    wifi.wait_netif_up()?;
-
-    while !wifi.is_connected().unwrap() {
-        let config = wifi.get_configuration()?;
-        info!("Waiting for station {:?}", config);
-    }
-    info!("Connected to Wi-Fi");
+    // Wi-Fiの初期化
+    let wifi_settings = wifi::WifiSettings::new(SSID, PASSWORD);
+    let _ = wifi::wifi_init(wifi_settings, peripherals.modem, sysloop, nvs)?;
 
     // NTPの初期化 (時刻同期)
     let ntp = EspSntp::new_default()?;
