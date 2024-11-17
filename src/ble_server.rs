@@ -30,27 +30,8 @@ fn main() -> Result<()> {
     let nvs = EspDefaultNvsPartition::take()?;
 
     // Wi-Fiの初期化
-    // Wi-Fiの設定
-    let ssid: heapString<32> = heapString::try_from(WIFI_CONFIG.ssid).expect("SSID Error");
-    let password: heapString<64> =
-        heapString::try_from(WIFI_CONFIG.password).expect("Password Error");
-
-    wifi.set_configuration(&WifiConfig::Client(ClientConfiguration {
-        ssid: ssid,
-        password: password,
-        auth_method: AuthMethod::None,
-        ..Default::default()
-    }))?;
-
-    wifi.start()?;
-    wifi.connect()?;
-    wifi.wait_netif_up()?;
-
-    while !wifi.is_connected().unwrap() {
-        let config = wifi.get_configuration()?;
-        info!("Waiting for station {:?}", config);
-    }
-    info!("Connected to Wi-Fi");
+    let wifi_settings = wifi::WifiSettings::new(SSID, PASSWORD);
+    let _wifi = wifi::wifi_init(wifi_settings, peripherals.modem, sysloop, nvs)?;
 
     // NTPの初期化 (時刻同期)
     let ntp = EspSntp::new_default()?;

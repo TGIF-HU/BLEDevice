@@ -26,7 +26,7 @@ fn main() -> Result<()> {
 
     // Wi-Fiの初期化
     let wifi_settings = wifi::WifiSettings::new(SSID, PASSWORD);
-    let _ = wifi::wifi_init(wifi_settings, peripherals.modem, sysloop, nvs)?;
+    let _wifi = wifi::wifi_init(wifi_settings, peripherals.modem, sysloop, nvs)?;
 
     // NTPの初期化 (時刻同期)
     let ntp = EspSntp::new_default()?;
