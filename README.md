@@ -13,22 +13,15 @@ id #確認
 
 # WIFIの設定
 
-`src/config.rs`や`examples/config.rs`ファイルを作成し、WifiのSSIDとパスワードを書き込む
+`src/config.rs`を作成し、WifiのSSIDとパスワードを書き込む
 
 ```src/config.rs
-pub struct WifiConfig {
-    pub ssid: &'static str,
-    pub password: &'static str,
-}
-
-pub const WIFI_CONFIG: WifiConfig = WifiConfig {
-    ssid: "ssid",
-    password: "password",
-};
+pub const SSID: &str = "ssid";
+pub const PASSWORD: &str = "password";
 
 pub const DEVICE_ID: usize = 1;
 
-pub const URL: &str = "http://192.168.2.103:5050/api/device";
+pub const URL: &str = "http://192.168.2.108:5050/api/device";
 ```
 
 # 実行方法
