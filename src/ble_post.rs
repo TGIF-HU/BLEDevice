@@ -19,7 +19,7 @@ fn main() -> Result<()> {
     esp_idf_svc::log::EspLogger::initialize_default();
     log::set_max_level(log::LevelFilter::Info);
 
-    // Wi-Fiの初期化
+    // Peripheralの初期化
     let peripherals = Peripherals::take()?;
     let sysloop = EspSystemEventLoop::take()?;
     let nvs = EspDefaultNvsPartition::take()?;
