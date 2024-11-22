@@ -35,7 +35,7 @@ cargo run --bin ble_server
 マイコンからあるサーバーにBLEデータを送信したい場合、
 
 ```bash
-cargo run --bin ble_cliant
+cargo run --bin ble_client
 ```
 
 データを測定したい場合、
