@@ -29,13 +29,13 @@ pub const URL: &str = "http://192.168.2.108:5050/api/device";
 マイコンをjsonサーバーとして用いたい場合、
 
 ```bash
-cargo run --bin ble_api
+cargo run --bin ble_server
 ```
 
 マイコンからあるサーバーにBLEデータを送信したい場合、
 
 ```bash
-cargo run --bin ble_post
+cargo run --bin ble_cliant
 ```
 
 データを測定したい場合、
