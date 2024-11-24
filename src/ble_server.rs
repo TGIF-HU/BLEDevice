@@ -9,7 +9,7 @@ use esp_idf_hal::{delay::FreeRtos, io::Write, peripherals::Peripherals, task::bl
 use esp_idf_svc::{
     eventloop::EspSystemEventLoop,
     http::{
-        server::{Configuration as HTTPConfig, EspHttpServer},
+        server::{Configuration, EspHttpServer},
         Method,
     },
     nvs::EspDefaultNvsPartition,
@@ -40,11 +40,9 @@ fn main() -> Result<()> {
     // HTTP Server用のBLEデバイス情報を格納する共有メモリ
     let ble_info = Arc::new(Mutex::new(BLEInfoQueue::new(50)));
     let ble_info_http = ble_info.clone();
-    // BLEスキャン用の共有メモリ
-    let ble_info_scan = ble_info.clone();
 
     // HTTP Serverの初期化
-    let mut httpserver = EspHttpServer::new(&HTTPConfig::default())?;
+    let mut httpserver = EspHttpServer::new(&Configuration::default())?;
 
     httpserver.fn_handler("/", Method::Get, move |request| {
         let ble_info_http_lock = ble_info_http.lock().unwrap();
@@ -56,9 +54,29 @@ fn main() -> Result<()> {
             .write_all(response_body.as_bytes())
     })?;
 
+    let ble_info_scan = ble_info.clone();
     std::thread::spawn(move || loop {
         // BLEデバイスのスキャンと更新を行う
-        scan_and_update_ble_info(ble_info_scan.clone());
+        let ble_info_scan_clone = ble_info_scan.clone();
+        block_on(async move {
+            let ble_device = BLEDevice::take();
+            let ble_scan = ble_device.get_scan();
+
+            ble_scan
+                .active_scan(true)
+                .interval(100) // 測定間隔
+                .window(50) // 測定時間
+                .on_result(move |_scan, param| {
+                    let mut ble_info_lock = ble_info_scan_clone.lock().unwrap();
+
+                    // クロージャ内でデバイス情報を追加
+                    ble_info_lock.push(get_bleinfo(param));
+                    // info!("BLE Device Info: {:?}", ble_info_lock);
+                });
+
+            ble_scan.start(10000).await.unwrap();
+            info!("Scan end");
+        });
     });
 
     // Serverのリクエストの受信 ∧ 時間の較正
@@ -69,26 +87,4 @@ fn main() -> Result<()> {
 
         FreeRtos::delay_ms(u32::MAX / 100); // 2^32 ms / 100 ~= 49.7 days / 100 ~= 0.5 day
     }
-}
-
-fn scan_and_update_ble_info(ble_info: Arc<Mutex<BLEInfoQueue>>) {
-    block_on(async {
-        let ble_device = BLEDevice::take();
-        let ble_scan = ble_device.get_scan();
-
-        ble_scan
-            .active_scan(true)
-            .interval(100) // 測定間隔
-            .window(50) // 測定時間
-            .on_result(move |_scan, param| {
-                let mut ble_info_lock = ble_info.lock().unwrap();
-
-                // クロージャ内でデバイス情報を追加
-                ble_info_lock.push(get_bleinfo(param));
-                // info!("BLE Device Info: {:?}", ble_info_lock);
-            });
-
-        ble_scan.start(10000).await.unwrap();
-        info!("Scan end");
-    });
 }
