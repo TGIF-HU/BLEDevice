@@ -1,12 +1,11 @@
-mod ble;
 mod config;
-mod queue;
-mod wifi;
+mod utils;
 
 use anyhow::Result;
-use ble::{scan_and_update_ble_info, BLEInfoQueue};
+use ble::{get_bleinfo, BLEInfoQueue};
 use config::{PASSWORD, SSID};
-use esp_idf_hal::{delay::FreeRtos, io::Write, peripherals::Peripherals};
+use esp32_nimble::BLEDevice;
+use esp_idf_hal::{delay::FreeRtos, io::Write, peripherals::Peripherals, task::block_on};
 use esp_idf_svc::{
     eventloop::EspSystemEventLoop,
     http::{
@@ -18,6 +17,7 @@ use esp_idf_svc::{
 };
 use log::*;
 use std::sync::{Arc, Mutex};
+use utils::{ble, wifi};
 
 fn main() -> Result<()> {
     esp_idf_svc::sys::link_patches();
@@ -69,4 +69,26 @@ fn main() -> Result<()> {
 
         FreeRtos::delay_ms(u32::MAX / 100); // 2^32 ms / 100 ~= 49.7 days / 100 ~= 0.5 day
     }
+}
+
+fn scan_and_update_ble_info(ble_info: Arc<Mutex<BLEInfoQueue>>) {
+    block_on(async {
+        let ble_device = BLEDevice::take();
+        let ble_scan = ble_device.get_scan();
+
+        ble_scan
+            .active_scan(true)
+            .interval(100) // 測定間隔
+            .window(50) // 測定時間
+            .on_result(move |_scan, param| {
+                let mut ble_info_lock = ble_info.lock().unwrap();
+
+                // クロージャ内でデバイス情報を追加
+                ble_info_lock.push(get_bleinfo(param));
+                // info!("BLE Device Info: {:?}", ble_info_lock);
+            });
+
+        ble_scan.start(10000).await.unwrap();
+        info!("Scan end");
+    });
 }
