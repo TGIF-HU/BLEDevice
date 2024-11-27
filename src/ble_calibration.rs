@@ -1,20 +1,16 @@
 mod config;
 mod utils;
 
-use anyhow::Result;
-use config::{PASSWORD, SSID, URL};
-use embedded_svc::http::client::Client;
-use esp32_nimble::BLEDevice;
-use esp_idf_hal::{delay::FreeRtos, gpio::PinDriver, peripherals::Peripherals, task::block_on};
-use esp_idf_svc::{
-    eventloop::EspSystemEventLoop,
-    http::client::{Configuration, EspHttpConnection},
-    nvs::EspDefaultNvsPartition,
-};
-use log::*;
-use utils::{ble, leddriver::LedDriver, wifi};
+use config::{PASSWORD, SSID};
+use esp32_nimble::{utilities::BleUuid, BLEAdvertisementData, BLEDevice, NimbleProperties};
+use esp_idf_hal::{delay::FreeRtos, gpio::PinDriver, prelude::Peripherals};
+use esp_idf_svc::{eventloop::EspSystemEventLoop, nvs::EspDefaultNvsPartition};
+use utils::{leddriver::LedDriver, wifi};
 
-fn main() -> Result<()> {
+const SERVICE_UUID: BleUuid = BleUuid::Uuid16(0xABCD);
+const WAITTIME: u32 = 20000; // 20000ms = 20s
+
+fn main() -> anyhow::Result<()> {
     esp_idf_svc::sys::link_patches();
     esp_idf_svc::log::EspLogger::initialize_default();
 
@@ -27,9 +23,23 @@ fn main() -> Result<()> {
     let wifi_settings = wifi::WifiSettings::new(SSID, PASSWORD);
     let _wifi = wifi::wifi_init(wifi_settings, peripherals.modem, sysloop, nvs)?;
 
-    // BLEデバイスのスキャンと更新を行う
+    // BLEの初期化
     let ble_device = BLEDevice::take();
-    let ble_scan = ble_device.get_scan();
+    let server = ble_device.get_server();
+
+    let service = server.create_service(SERVICE_UUID);
+    let characteristic = service
+        .lock()
+        .create_characteristic(BleUuid::Uuid16(0x1234), NimbleProperties::READ);
+    characteristic.lock().set_value("Hello, world!".as_bytes());
+
+    let mut advertising_data = BLEAdvertisementData::new();
+    advertising_data
+        .name("BLE_Device")
+        .manufacturer_data(&[0x01, 0x02, 0x03]);
+
+    let mut advertising = ble_device.get_advertising().lock();
+    advertising.set_data(&mut advertising_data)?;
 
     // ボタンの初期化
     let led = PinDriver::output(peripherals.pins.gpio27)?;
@@ -45,48 +55,10 @@ fn main() -> Result<()> {
         }
         leddriver.running();
 
-        block_on(async {
-            ble_scan
-                .active_scan(true)
-                .interval(100) // 測定間隔
-                .window(50) // 測定時間
-                .on_result(move |_scan, param| {
-                    let ble_info = ble::get_bleinfo(param);
-
-                    // HTTPクライアントの初期化
-                    let httpconnection = match EspHttpConnection::new(&Configuration {
-                        use_global_ca_store: false, // httpsの場合はtrue
-                        // crt_bundle_attach: Some(esp_idf_sys::esp_crt_bundle_attach), // httpsの場合は必須
-                        ..Default::default()
-                    }) {
-                        Ok(conn) => conn,
-                        Err(e) => {
-                            warn!("HTTPクライアントの初期化に失敗しました: {:?}", e);
-                            return;
-                        }
-                    };
-
-                    let mut httpclient = Client::wrap(httpconnection);
-
-                    let header = [("Content-Type", "application/json")];
-                    let mut request = match httpclient.post(URL, &header) {
-                        Ok(request) => request,
-                        Err(e) => {
-                            warn!("サーバーが見つかりませんでした");
-                            warn!("Error: {:?}", e);
-                            FreeRtos::delay_ms(3000);
-                            return;
-                        }
-                    };
-
-                    let response_body = ble_info.get_json();
-                    request.write(response_body.as_bytes()).unwrap();
-                    request.submit().unwrap();
-                });
-
-            ble_scan.start(10000).await.unwrap();
-            info!("Scan end");
-        });
+        // BLEの広告を開始
+        advertising.start()?;
+        FreeRtos::delay_ms(WAITTIME);
+        advertising.stop()?;
 
         // 終わりの演出
         leddriver.ending();
