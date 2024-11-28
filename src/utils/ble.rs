@@ -75,6 +75,7 @@ impl BLEInfoQueue {
     }
 }
 
+#[allow(dead_code)]
 pub fn get_bleinfo(param: &BLEAdvertisedDevice) -> BLEInfo {
     let address = param.addr().to_string();
     let rssi = param.rssi();

@@ -1,14 +1,21 @@
 mod config;
 mod utils;
 
-use config::{PASSWORD, SSID};
+use config::{MEASURE_URL, PASSWORD, SSID};
+use embedded_svc::http::client::Client;
 use esp32_nimble::{utilities::BleUuid, BLEAdvertisementData, BLEDevice, NimbleProperties};
 use esp_idf_hal::{delay::FreeRtos, gpio::PinDriver, prelude::Peripherals};
-use esp_idf_svc::{eventloop::EspSystemEventLoop, nvs::EspDefaultNvsPartition};
+use esp_idf_svc::{
+    eventloop::EspSystemEventLoop,
+    http::client::{Configuration, EspHttpConnection},
+    nvs::EspDefaultNvsPartition,
+};
+use esp_idf_sys::exit;
+use log::*;
 use utils::{leddriver::LedDriver, wifi};
 
 const SERVICE_UUID: BleUuid = BleUuid::Uuid16(0xABCD);
-const WAITTIME: u32 = 20000; // 20000ms = 20s
+const WAITTIME: u32 = 10000; // 10000ms = 10s
 
 fn main() -> anyhow::Result<()> {
     esp_idf_svc::sys::link_patches();
@@ -53,12 +60,52 @@ fn main() -> anyhow::Result<()> {
         if !leddriver.is_button_pushed() {
             continue;
         }
+        // ボタンが押されたら、測定を開始
         leddriver.running();
 
+        // HTTPリクエストの送信
+        let httpconnection = match EspHttpConnection::new(&Configuration {
+            use_global_ca_store: false, // httpsの場合はtrue
+            // crt_bundle_attach: Some(esp_idf_sys::esp_crt_bundle_attach), // httpsの場合は必須
+            ..Default::default()
+        }) {
+            Ok(conn) => conn,
+            Err(e) => {
+                warn!("HTTPクライアントの初期化に失敗しました: {:?}", e);
+                unsafe { exit(1) } // ToDo: これ以外の書き方はない？
+            }
+        };
+
+        let mut httpclient = Client::wrap(httpconnection);
+        let header = [("Content-Type", "application/json")];
+
+        let mut request = match httpclient.post(MEASURE_URL, &header) {
+            Ok(request) => request,
+            Err(e) => {
+                warn!("サーバーが見つかりませんでした");
+                warn!("Error: {:?}", e);
+                FreeRtos::delay_ms(3000);
+                unsafe {
+                    exit(1);
+                }
+            }
+        };
+        let payload = serde_json::json!({
+            "device_id": "12345",
+            "timestamp": chrono::Utc::now().to_rfc3339(),
+        });
+        info!("Requesting to server");
+        request.write(payload.to_string().as_bytes())?;
+        request.submit()?;
+        info!("Request sent");
+        FreeRtos::delay_ms(3000);
+
         // BLEの広告を開始
+        info!("Advertising start");
         advertising.start()?;
         FreeRtos::delay_ms(WAITTIME);
         advertising.stop()?;
+        info!("Advertising stopped");
 
         // 終わりの演出
         leddriver.ending();

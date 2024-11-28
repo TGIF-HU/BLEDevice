@@ -2,7 +2,7 @@ mod config;
 mod utils;
 
 use anyhow::Result;
-use config::{PASSWORD, SSID, URL};
+use config::{DEVICE_URL, PASSWORD, SSID};
 use embedded_svc::http::client::Client;
 use esp32_nimble::BLEDevice;
 use esp_idf_hal::{delay::FreeRtos, peripherals::Peripherals, task::block_on};
@@ -62,7 +62,7 @@ fn main() -> Result<()> {
                     let mut httpclient = Client::wrap(httpconnection);
 
                     let header = [("Content-Type", "application/json")];
-                    let mut request = match httpclient.post(URL, &header) {
+                    let mut request = match httpclient.post(DEVICE_URL, &header) {
                         Ok(request) => request,
                         Err(e) => {
                             warn!("サーバーが見つかりませんでした");
