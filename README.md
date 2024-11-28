@@ -21,15 +21,10 @@ pub const PASSWORD: &str = "password";
 
 pub const DEVICE_ID: usize = 1;
 
-pub const SSID: &str = "elecom-a19d07";
-pub const PASSWORD: &str = "c2prrkjhc8nk";
-
-pub const DEVICE_ID: usize = 1;
-
 // このURLは、BLEを受信しサーバに送信するためのURL
-pub const URL: &str = "http://192.168.2.103:5050/api/device";
+pub const DEVICE_URL: &str = "http://192.168.2.103:5050/api/device";
 // このURLは、測定用のURL
-pub const MEASUREURL: &str = "http://192.168.2.103:5050/api/measure";
+pub const MEASURE_URL: &str = "http://192.168.2.103:5050/api/measure";
 
 ```
 
