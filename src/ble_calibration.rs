@@ -16,6 +16,7 @@ use utils::{leddriver::LedDriver, wifi};
 
 const SERVICE_UUID: BleUuid = BleUuid::Uuid16(0xABCD);
 const WAITTIME: u32 = 2000; // 10000ms = 2s
+const DEVICE_NAME: &str = "CalibrationDevice";
 
 fn main() -> anyhow::Result<()> {
     esp_idf_svc::sys::link_patches();
@@ -42,7 +43,7 @@ fn main() -> anyhow::Result<()> {
 
     let mut advertising_data = BLEAdvertisementData::new();
     advertising_data
-        .name("BLE_Device")
+        .name(DEVICE_NAME)
         .manufacturer_data(&[0x01, 0x02, 0x03]);
 
     let mut advertising = ble_device.get_advertising().lock();
