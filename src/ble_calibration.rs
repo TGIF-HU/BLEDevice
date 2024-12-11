@@ -15,7 +15,7 @@ use log::*;
 use utils::{leddriver::LedDriver, wifi};
 
 const SERVICE_UUID: BleUuid = BleUuid::Uuid16(0xABCD);
-const WAITTIME: u32 = 10000; // 10000ms = 10s
+const WAITTIME: u32 = 2000; // 10000ms = 2s
 
 fn main() -> anyhow::Result<()> {
     esp_idf_svc::sys::link_patches();
